@@ -38,7 +38,7 @@ exports.addedLecture = functions.firestore
     const payload = (admin.messaging.MessagingPayload = {
       notification: {
         title: "LINK AA GYA",
-        body: `Link for ${newLecture.subject} has been added.`,
+        body: `Join ${newLecture.subject} class`,
         // icon: "your-icon-url",
         // click_action: "FLUTTER_NOTIFICATION_CLICK",
       },
@@ -46,7 +46,14 @@ exports.addedLecture = functions.firestore
 
     console.log(payload);
 
-    return fcm.sendToDevice(fcmTokens, payload);
+    let timeNow = new Date();
+
+    console.log(timeNow.getUTCHours());
+
+    if (timeNow.getUTCHours() + 5 >= 20)
+      return fcm.sendToDevice([], payload);
+    else 
+      return fcm.sendToDevice(fcmTokens, payload);
   });
 
 exports.addedUpdate = functions.firestore
@@ -88,5 +95,18 @@ exports.addedUpdate = functions.firestore
 
     console.log(payload);
 
-    return fcm.sendToDevice(fcmTokens, payload);
+    let timeNow = new Date();
+
+    if (newUpdate.type == "poll")
+    {
+      if (newUpdate.noCount == 0 && yesCount == 0)
+        return fcm.sendToDevice(fcmTokens, payload);
+      else 
+        return fcm.sendToDevice([], payload);
+    } else {
+      if (timeNow.getTime() > newUpdate.dateAndTime.getTime() + 120000)
+        return fcm.sendToDevice([], payload);
+      else 
+        return fcm.sendToDevice(fcmTokens, payload);
+    } 
   });
